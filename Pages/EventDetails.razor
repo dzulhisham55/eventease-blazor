@@ -1,0 +1,58 @@
+@page "/events/{Id:int}"
+@inject EventService Events
+
+<PageTitle>@(SelectedEvent is null ? "Event not found" : SelectedEvent.Name)</PageTitle>
+
+@if (SelectedEvent is null)
+{
+    <div class="alert alert-warning" role="alert">
+        No event with the id <strong>@Id</strong> exists.
+        <a href="events">Back to the event list</a>.
+    </div>
+}
+else
+{
+    <nav aria-label="Breadcrumb" class="mb-3">
+        <a class="small" href="events">&larr; All events</a>
+    </nav>
+
+    <h1 class="h2">@SelectedEvent.Name</h1>
+    <p class="text-muted">
+        <time datetime="@SelectedEvent.Date.ToString("yyyy-MM-dd")">@SelectedEvent.Date.ToString("dddd, dd MMMM yyyy")</time>
+        &middot; @SelectedEvent.Location
+    </p>
+
+    <p class="lead">@SelectedEvent.Description</p>
+
+    <dl class="row event-facts">
+        <dt class="col-sm-3">Capacity</dt>
+        <dd class="col-sm-9">@SelectedEvent.Capacity seats</dd>
+
+        <dt class="col-sm-3">Registered</dt>
+        <dd class="col-sm-9">@Events.RegisteredCount(SelectedEvent.Id)</dd>
+
+        <dt class="col-sm-3">Seats left</dt>
+        <dd class="col-sm-9">@Events.SeatsLeft(SelectedEvent) of @SelectedEvent.Capacity</dd>
+    </dl>
+
+    @if (Events.SeatsLeft(SelectedEvent) == 0)
+    {
+        <p class="text-danger fw-semibold">This event is full.</p>
+    }
+    else
+    {
+        <a class="btn btn-primary" href="register/@SelectedEvent.Id">Register for this event</a>
+    }
+
+    <a class="btn btn-link" href="attendance">View attendance</a>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private EventItem? SelectedEvent { get; set; }
+
+    // Runs whenever the route parameter changes, so /events/1 -> /events/2 refreshes the page.
+    protected override void OnParametersSet() => SelectedEvent = Events.GetEvent(Id);
+}

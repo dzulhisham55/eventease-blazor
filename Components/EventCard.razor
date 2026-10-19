@@ -1,0 +1,61 @@
+@inject EventService Events
+
+<article class="card event-card h-100">
+    <div class="card-body">
+        @if (IsEditing)
+        {
+            <div class="mb-3">
+                <label class="form-label small" for="card-name-@Event.Id">Event name</label>
+                <input id="card-name-@Event.Id" class="form-control"
+                       @bind="Event.Name" @bind:event="oninput" @bind:after="NotifyChanged" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label small" for="card-location-@Event.Id">Location</label>
+                <input id="card-location-@Event.Id" class="form-control"
+                       @bind="Event.Location" @bind:event="oninput" @bind:after="NotifyChanged" />
+            </div>
+            <div class="mb-3">
+                <label class="form-label small" for="card-capacity-@Event.Id">Capacity</label>
+                <input id="card-capacity-@Event.Id" type="number" min="1" class="form-control"
+                       @bind="Event.Capacity" @bind:event="oninput" @bind:after="NotifyChanged" />
+            </div>
+        }
+        else
+        {
+            <h2 class="h5 card-title">@Event.Name</h2>
+            <p class="text-muted small mb-2">
+                <time datetime="@Event.Date.ToString("yyyy-MM-dd")">@Event.Date.ToString("ddd, dd MMM yyyy")</time>
+                &middot; @Event.Location
+            </p>
+            <p class="card-text">@Event.Description</p>
+        }
+    </div>
+
+    <div class="card-footer d-flex flex-wrap gap-2 justify-content-between align-items-center">
+        <span class="small text-muted">
+            @Events.SeatsLeft(Event) of @Event.Capacity seats left
+        </span>
+        <span class="d-flex gap-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="ToggleEdit">
+                @(IsEditing ? "Done" : "Edit")
+            </button>
+            <a class="btn btn-sm btn-primary" href="events/@Event.Id">Details</a>
+        </span>
+    </div>
+</article>
+
+@code {
+    /// <summary>The event shown in this card. The parent owns the list this instance lives in.</summary>
+    [Parameter, EditorRequired]
+    public EventItem Event { get; set; } = default!;
+
+    /// <summary>Raised after an edit, so a parent using @@bind-Event sees the update.</summary>
+    [Parameter]
+    public EventCallback<EventItem> EventChanged { get; set; }
+
+    private bool IsEditing { get; set; }
+
+    private void ToggleEdit() => IsEditing = !IsEditing;
+
+    private async Task NotifyChanged() => await EventChanged.InvokeAsync(Event);
+}

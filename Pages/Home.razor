@@ -1,0 +1,46 @@
+@page "/"
+@page "/events"
+@inject EventService Events
+
+<PageTitle>Events</PageTitle>
+
+<div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+    <div>
+        <h1 class="h2 mb-1">Upcoming events</h1>
+        <p class="text-muted mb-0">Browse the programme and reserve a seat.</p>
+    </div>
+    <div class="search-box">
+        <label class="form-label small" for="event-search">Search</label>
+        <input id="event-search" class="form-control" placeholder="Filter by name or location"
+               @bind="search" @bind:event="oninput" />
+    </div>
+</div>
+
+@if (Filtered.Count == 0)
+{
+    <p class="text-muted">No events match &ldquo;@search&rdquo;.</p>
+}
+else
+{
+    <div class="row g-4">
+        @foreach (var eventItem in Filtered)
+        {
+            <div class="col-12 col-lg-6">
+                <EventCard Event="eventItem" EventChanged="OnEventChanged" />
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private string search = string.Empty;
+
+    private List<EventItem> Filtered => Events.GetEvents()
+        .Where(e => string.IsNullOrWhiteSpace(search)
+                    || e.Name.Contains(search, StringComparison.OrdinalIgnoreCase)
+                    || e.Location.Contains(search, StringComparison.OrdinalIgnoreCase))
+        .ToList();
+
+    // The card edits the same EventItem instance this page holds, so a re-render is all that is needed.
+    private void OnEventChanged(EventItem eventItem) => StateHasChanged();
+}

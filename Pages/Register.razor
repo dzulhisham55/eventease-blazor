@@ -1,0 +1,76 @@
+@page "/register/{EventId:int}"
+@inject EventService Events
+@inject SessionService Session
+@inject NavigationManager Navigation
+
+<PageTitle>Register</PageTitle>
+
+@if (SelectedEvent is null)
+{
+    <div class="alert alert-warning" role="alert">
+        That event does not exist. <a href="events">Choose another event</a>.
+    </div>
+}
+else if (Events.SeatsLeft(SelectedEvent) == 0)
+{
+    <h1 class="h2">@SelectedEvent.Name</h1>
+    <div class="alert alert-warning" role="alert">
+        This event is full, so registration is closed.
+    </div>
+}
+else
+{
+    <h1 class="h2">Register for @SelectedEvent.Name</h1>
+    <p class="text-muted">
+        <time datetime="@SelectedEvent.Date.ToString("yyyy-MM-dd")">@SelectedEvent.Date.ToString("ddd, dd MMM yyyy")</time>
+        &middot; @SelectedEvent.Location &middot; @Events.SeatsLeft(SelectedEvent) seats left
+    </p>
+
+    <div class="col-12 col-lg-7">
+        <EditForm Model="Request" OnValidSubmit="Submit" FormName="registration" novalidate class="card card-body">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="mb-3">
+                <label class="form-label" for="full-name">Full name</label>
+                <InputText id="full-name" class="form-control" @bind-Value="Request.FullName" />
+                <ValidationMessage For="() => Request.FullName" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="email">Email address</label>
+                <InputText id="email" type="email" class="form-control" @bind-Value="Request.Email" />
+                <ValidationMessage For="() => Request.Email" />
+            </div>
+
+            <button type="submit" class="btn btn-primary">Confirm registration</button>
+            <a class="btn btn-link" href="events">Cancel</a>
+        </EditForm>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public int EventId { get; set; }
+
+    private EventItem? SelectedEvent { get; set; }
+
+    private RegistrationRequest Request { get; set; } = new();
+
+    protected override void OnParametersSet() => SelectedEvent = Events.GetEvent(EventId);
+
+    private void Submit()
+    {
+        if (SelectedEvent is null)
+        {
+            return;
+        }
+
+        var registration = Events.Register(SelectedEvent.Id, Request.FullName, Request.Email);
+
+        // Remember the attendee for the rest of the session; the navbar reads this same service.
+        Session.SignIn(registration);
+
+        Navigation.NavigateTo($"confirmation/{registration.Id}");
+    }
+}

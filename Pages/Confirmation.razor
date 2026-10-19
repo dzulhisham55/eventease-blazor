@@ -1,0 +1,36 @@
+@page "/confirmation/{RegistrationId:int}"
+@inject EventService Events
+
+<PageTitle>Registration confirmed</PageTitle>
+
+@if (Registration is null)
+{
+    <div class="alert alert-warning" role="alert">
+        We could not find that registration. <a href="events">Back to events</a>.
+    </div>
+}
+else
+{
+    <div class="alert alert-success" role="status">
+        <h1 class="h4 alert-heading">You are registered, @Registration.FullName</h1>
+        <p class="mb-0">
+            A confirmation has been recorded for <strong>@EventName</strong> using @Registration.Email.
+        </p>
+    </div>
+
+    <p>Keep your registration number handy on arrival: <strong>#@Registration.Id</strong>.</p>
+
+    <a class="btn btn-primary" href="attendance">Open the attendance tracker</a>
+    <a class="btn btn-link" href="events">Browse more events</a>
+}
+
+@code {
+    [Parameter]
+    public int RegistrationId { get; set; }
+
+    private Registration? Registration { get; set; }
+
+    private string EventName => Events.GetEvent(Registration?.EventId ?? 0)?.Name ?? "the event";
+
+    protected override void OnParametersSet() => Registration = Events.GetRegistration(RegistrationId);
+}

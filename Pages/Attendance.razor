@@ -1,0 +1,70 @@
+@page "/attendance"
+@inject EventService Events
+
+<PageTitle>Attendance</PageTitle>
+
+<h1 class="h2">Attendance tracker</h1>
+<p class="text-muted">Tick attendees off as they arrive. Counts update as you go.</p>
+
+<div class="row g-3 align-items-end mb-4">
+    <div class="col-12 col-md-6">
+        <label class="form-label" for="event-picker">Event</label>
+        <select id="event-picker" class="form-select" @bind="selectedEventId">
+            @foreach (var eventItem in Events.GetEvents())
+            {
+                <option value="@eventItem.Id">@eventItem.Name</option>
+            }
+        </select>
+    </div>
+    <div class="col-12 col-md-6">
+        <div class="attendance-tally" role="status">
+            <strong>@CheckedInCount</strong> of <strong>@Registrations.Count</strong> checked in
+        </div>
+    </div>
+</div>
+
+@if (Registrations.Count == 0)
+{
+    <p class="text-muted">Nobody has registered for this event yet.</p>
+}
+else
+{
+    <div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th scope="col" style="width: 4rem;">Here</th>
+                <th scope="col">Name</th>
+                <th scope="col">Email</th>
+                <th scope="col">Registered</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var registration in Registrations)
+            {
+                <tr class="@(registration.CheckedIn ? "table-success" : null)">
+                    <td>
+                        <input class="form-check-input" type="checkbox"
+                               aria-label="Checked in: @registration.FullName"
+                               @bind="registration.CheckedIn" @bind:after="NotifyChange" />
+                    </td>
+                    <td>@registration.FullName</td>
+                    <td class="text-muted">@registration.Email</td>
+                    <td class="text-muted small">@registration.RegisteredAt.ToString("dd MMM, HH:mm")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    </div>
+}
+
+@code {
+    private int selectedEventId = 1;
+
+    private List<Registration> Registrations => Events.GetRegistrations(selectedEventId).ToList();
+
+    private int CheckedInCount => Events.CheckedInCount(selectedEventId);
+
+    // @bind already updated the registration, so the count above just needs a re-render.
+    private void NotifyChange() => StateHasChanged();
+}
