@@ -2,6 +2,8 @@
 
 A Blazor WebAssembly app for managing events, registrations and attendance. Built with .NET 8.
 
+Repository: https://github.com/dzulhisham55/eventease-blazor
+
 ## Features
 
 | Area | What it does | Where |
@@ -19,7 +21,9 @@ A Blazor WebAssembly app for managing events, registrations and attendance. Buil
 Requires the .NET 8 SDK.
 
 ```bash
-dotnet run --project EventEase
+git clone https://github.com/dzulhisham55/eventease-blazor.git
+cd eventease-blazor
+dotnet run
 ```
 
 Then open the URL printed in the console (the profile uses `http://localhost:5xxx`).
